@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Horoscope {
   sign: string;
@@ -44,29 +45,33 @@ const Astrology = () => {
     try {
       const promises = zodiacSigns.map(async (sign) => {
         try {
-          // Using Aztro API - a reliable free horoscope API
-          const response = await fetch(`https://aztro.sameerkumar.website/?sign=${sign.name}&day=today`, {
-            method: 'POST'
+          // Call our edge function to avoid CORS issues
+          const { data, error } = await supabase.functions.invoke('fetch-horoscope', {
+            body: { sign: sign.name }
           });
-          
-          if (!response.ok) {
-            console.log(`API failed for ${sign.name}, status: ${response.status}`);
-            throw new Error('API request failed');
+
+          if (error) {
+            console.error(`Error fetching horoscope for ${sign.name}:`, error);
+            throw error;
+          }
+
+          if (data?.success && data?.data) {
+            const apiData = data.data;
+            console.log(`Horoscope data for ${sign.name}:`, apiData);
+
+            return {
+              sign: sign.name.charAt(0).toUpperCase() + sign.name.slice(1),
+              hindiName: sign.hindi,
+              date: apiData.current_date || new Date().toLocaleDateString(),
+              horoscope: apiData.description || "Your stars are aligned today. Stay positive and embrace new opportunities.",
+              color: sign.color,
+              luckyNumber: apiData.lucky_number || Math.floor(Math.random() * 99 + 1).toString(),
+              luckyTime: apiData.lucky_time || `${Math.floor(Math.random() * 12 + 1)}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
+              mood: apiData.mood || ["Happy", "Energetic", "Calm", "Optimistic", "Focused"][Math.floor(Math.random() * 5)]
+            };
           }
           
-          const data = await response.json();
-          console.log(`Horoscope data for ${sign.name}:`, data);
-          
-          return {
-            sign: sign.name.charAt(0).toUpperCase() + sign.name.slice(1),
-            hindiName: sign.hindi,
-            date: data.current_date || new Date().toLocaleDateString(),
-            horoscope: data.description || "Your stars are aligned today. Stay positive and embrace new opportunities.",
-            color: sign.color,
-            luckyNumber: data.lucky_number || Math.floor(Math.random() * 99 + 1).toString(),
-            luckyTime: data.lucky_time || `${Math.floor(Math.random() * 12 + 1)}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
-            mood: data.mood || ["Happy", "Energetic", "Calm", "Optimistic", "Focused"][Math.floor(Math.random() * 5)]
-          };
+          throw new Error('Invalid API response');
         } catch (error) {
           console.error(`Error fetching horoscope for ${sign.name}:`, error);
           // Unique fallback data for each sign
@@ -84,7 +89,7 @@ const Astrology = () => {
             aquarius: "Innovation and originality set you apart. Embrace your unique perspective.",
             pisces: "Your intuition and compassion guide you. Creative pursuits bring joy and fulfillment."
           };
-          
+
           return {
             sign: sign.name.charAt(0).toUpperCase() + sign.name.slice(1),
             hindiName: sign.hindi,
@@ -100,6 +105,11 @@ const Astrology = () => {
 
       const results = await Promise.all(promises);
       setHoroscopes(results);
+      
+      toast({
+        title: "Horoscopes Updated",
+        description: "Fresh predictions loaded successfully!",
+      });
     } catch (error) {
       console.error('Error fetching horoscopes:', error);
       toast({
