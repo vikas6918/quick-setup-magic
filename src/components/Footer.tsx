@@ -1,99 +1,70 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export const Footer = () => {
-  const categories = [
-    { name: "Business", slug: "business" },
-    { name: "Politics", slug: "politics" },
-    { name: "Sports", slug: "sports" },
-    { name: "Bollywood", slug: "bollywood" },
-    { name: "Healthcare", slug: "healthcare" },
-    { name: "IT Sector", slug: "it-sector" },
-  ];
-
   return (
-    <footer className="border-t bg-muted/50 mt-16">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-card border-t">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-4">
+          {/* Logo and Description */}
+          <div className="col-span-1 md:col-span-2">
+            <Link to="/" className="text-2xl font-bold text-primary mb-4 block">
               PulseIndia
-            </h3>
-            <p className="text-muted-foreground">
-              Your trusted source for the latest news and updates from India and around the world.
+            </Link>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+              Your trusted source for the latest Indian news and current affairs. 
+              Stay informed with automated news updates covering politics, business, 
+              technology, sports, and more.
             </p>
-            <div className="flex space-x-4 mt-4">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </a>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} PulseIndia. All rights reserved.
+            </p>
           </div>
 
+          {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Categories</h4>
-            <ul className="space-y-2">
-              {categories.slice(0, 3).map((category) => (
-                <li key={category.slug}>
-                  <Link
-                    to={`/category/${category.slug}`}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-4">More</h4>
-            <ul className="space-y-2">
-              {categories.slice(3).map((category) => (
-                <li key={category.slug}>
-                  <Link
-                    to={`/category/${category.slug}`}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/horoscope" className="text-muted-foreground hover:text-primary transition-colors">
-                  Horoscope
+                <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Home
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">
-                  About Us
+                <Link to="/contact-us" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                  Contact
+                <Link to="/terms-conditions" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Terms & Conditions
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} PulseIndia. All rights reserved.</p>
+        <Separator className="my-6" />
+
+        <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-muted-foreground">
+          <p>
+            Automated news aggregation for the latest Indian updates
+          </p>
+          <p className="mt-2 sm:mt-0">
+            Last updated: {new Date().toLocaleString('en-IN')}
+          </p>
         </div>
       </div>
     </footer>

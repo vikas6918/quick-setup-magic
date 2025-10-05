@@ -1,0 +1,243 @@
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Helmet } from "react-helmet";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Horoscope {
+  sign: string;
+  date: string;
+  horoscope: string;
+  color: string;
+  luckyNumber: string;
+  luckyTime: string;
+  mood: string;
+}
+
+const zodiacSigns = [
+  { name: "Aries", hindi: "मेष", icon: "♈", color: "text-red-500" },
+  { name: "Taurus", hindi: "वृषभ", icon: "♉", color: "text-green-500" },
+  { name: "Gemini", hindi: "मिथुन", icon: "♊", color: "text-yellow-500" },
+  { name: "Cancer", hindi: "कर्क", icon: "♋", color: "text-blue-500" },
+  { name: "Leo", hindi: "सिंह", icon: "♌", color: "text-orange-500" },
+  { name: "Virgo", hindi: "कन्या", icon: "♍", color: "text-emerald-500" },
+  { name: "Libra", hindi: "तुला", icon: "♎", color: "text-pink-500" },
+  { name: "Scorpio", hindi: "वृश्चिक", icon: "♏", color: "text-purple-500" },
+  { name: "Sagittarius", hindi: "धनु", icon: "♐", color: "text-indigo-500" },
+  { name: "Capricorn", hindi: "मकर", icon: "♑", color: "text-cyan-500" },
+  { name: "Aquarius", hindi: "कुंभ", icon: "♒", color: "text-teal-500" },
+  { name: "Pisces", hindi: "मीन", icon: "♓", color: "text-violet-500" },
+];
+
+const Astrology = () => {
+  const [horoscopes, setHoroscopes] = useState<Horoscope[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { toast } = useToast();
+
+  const fetchHoroscopes = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const horoscopeData: Horoscope[] = [];
+
+      for (const sign of zodiacSigns) {
+        try {
+          const response = await fetch(
+            `https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily?sign=${sign.name.toLowerCase()}&day=today`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            horoscopeData.push({
+              sign: sign.name,
+              date: today,
+              horoscope: data.data.horoscope_data || "Your stars are aligning perfectly today. Stay positive and embrace opportunities.",
+              color: data.data.color || sign.color,
+              luckyNumber: data.data.lucky_number || Math.floor(Math.random() * 100).toString(),
+              luckyTime: data.data.lucky_time || "10:00 AM - 12:00 PM",
+              mood: data.data.mood || "Positive",
+            });
+          } else {
+            // Fallback data if API fails
+            horoscopeData.push({
+              sign: sign.name,
+              date: today,
+              horoscope: "Your stars are aligning perfectly today. Stay positive and embrace opportunities that come your way.",
+              color: sign.color,
+              luckyNumber: Math.floor(Math.random() * 100).toString(),
+              luckyTime: "10:00 AM - 12:00 PM",
+              mood: "Positive",
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching ${sign.name}:`, err);
+          horoscopeData.push({
+            sign: sign.name,
+            date: today,
+            horoscope: "Your stars are aligning perfectly today. Stay positive and embrace opportunities that come your way.",
+            color: sign.color,
+            luckyNumber: Math.floor(Math.random() * 100).toString(),
+            luckyTime: "10:00 AM - 12:00 PM",
+            mood: "Positive",
+          });
+        }
+      }
+
+      setHoroscopes(horoscopeData);
+      
+      if (isRefresh) {
+        toast({
+          title: "Success",
+          description: "Horoscopes updated successfully!",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching horoscopes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch horoscopes.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHoroscopes();
+  }, []);
+
+  const getTodayDate = () => {
+    return new Date().toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Today's Astrology - Daily Rashifal - PulseIndia</title>
+        <meta name="description" content="Get your daily horoscope and rashifal predictions for all zodiac signs. Check today's astrology for love, career, health and more." />
+        <meta name="keywords" content="astrology, horoscope, rashifal, zodiac signs, daily predictions, indian astrology" />
+      </Helmet>
+
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+
+        <main className="container mx-auto px-4 py-8 flex-1">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-3xl lg:text-4xl font-bold mb-2 flex items-center gap-2">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                  Today's Astrology
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  Daily Rashifal - {getTodayDate()}
+                </p>
+              </div>
+              
+              <Button
+                onClick={() => fetchHoroscopes(true)}
+                disabled={refreshing}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-6 bg-muted rounded w-2/3"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-muted rounded"></div>
+                        <div className="h-4 bg-muted rounded w-5/6"></div>
+                        <div className="h-4 bg-muted rounded w-4/6"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {zodiacSigns.map((sign, index) => {
+                  const horoscope = horoscopes.find(h => h.sign === sign.name);
+                  
+                  return (
+                    <Card key={sign.name} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-4xl ${sign.color}`}>{sign.icon}</span>
+                            <div>
+                              <CardTitle className="text-xl">{sign.name}</CardTitle>
+                              <p className="text-sm text-muted-foreground font-hindi">{sign.hindi}</p>
+                            </div>
+                          </div>
+                          {horoscope?.mood && (
+                            <Badge variant="outline" className="text-xs">
+                              {horoscope.mood}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-foreground leading-relaxed">
+                          {horoscope?.horoscope || "Loading your daily prediction..."}
+                        </p>
+                        
+                        <div className="pt-3 border-t space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Lucky Number:</span>
+                            <span className="font-semibold">{horoscope?.luckyNumber}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Lucky Time:</span>
+                            <span className="font-semibold">{horoscope?.luckyTime}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Disclaimer */}
+            <Card className="mt-8 bg-muted/50">
+              <CardContent className="pt-6">
+                <p className="text-xs text-center text-muted-foreground">
+                  <strong>Disclaimer:</strong> Astrology predictions are for entertainment purposes only. 
+                  They should not be used as a substitute for professional advice or decision-making.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    </>
+  );
+};
+
+export default Astrology;

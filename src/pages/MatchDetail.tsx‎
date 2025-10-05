@@ -1,0 +1,341 @@
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Helmet } from "react-helmet";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, Clock, Trophy, MapPin, Users, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+interface Player {
+  id: string;
+  name: string;
+  role?: string;
+}
+
+interface TeamSquad {
+  name: string;
+  shortname: string;
+  players: Player[];
+}
+
+interface MatchDetailData {
+  id: string;
+  name: string;
+  matchType: string;
+  status: string;
+  venue: string;
+  date: string;
+  dateTimeGMT: string;
+  teams: string[];
+  teamInfo: Array<{
+    name: string;
+    shortname: string;
+    img: string;
+  }>;
+  score: Array<{
+    r: number;
+    w: number;
+    o: number;
+    inning: string;
+  }>;
+  series_id: string;
+  tossWinner?: string;
+  tossChoice?: string;
+  matchWinner?: string;
+  squads?: TeamSquad[];
+}
+
+const MatchDetail = () => {
+  const { matchId } = useParams<{ matchId: string }>();
+  const [matchData, setMatchData] = useState<MatchDetailData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { toast } = useToast();
+
+  const fetchMatchDetail = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    
+    try {
+      const response = await fetch(
+        `https://api.cricapi.com/v1/match_info?apikey=b40ef1eb-9e1c-4803-b0f2-6ca2a240a54a&id=${matchId}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch match details');
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success' && data.data) {
+        setMatchData(data.data);
+        if (isRefresh) {
+          toast({
+            title: "Success",
+            description: "Match details updated successfully!",
+          });
+        }
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error fetching match details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch match details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (matchId) {
+      fetchMatchDetail();
+    }
+  }, [matchId]);
+
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      'Live': 'bg-red-500 text-white',
+      'Upcoming': 'bg-blue-500 text-white',
+      'Completed': 'bg-green-500 text-white',
+      'default': 'bg-gray-500 text-white'
+    };
+    
+    return statusColors[status as keyof typeof statusColors] || statusColors.default;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Helmet>
+          <title>Loading Match Details - PulseIndia</title>
+        </Helmet>
+        <div className="min-h-screen bg-background flex flex-col">
+          <Header />
+          <main className="container mx-auto px-4 py-8 flex-1">
+            <div className="max-w-4xl mx-auto">
+              <div className="animate-pulse space-y-6">
+                <div className="h-8 bg-muted rounded w-1/3"></div>
+                <Card>
+                  <CardHeader>
+                    <div className="h-6 bg-muted rounded w-3/4"></div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="h-4 bg-muted rounded"></div>
+                    <div className="h-4 bg-muted rounded w-5/6"></div>
+                    <div className="h-4 bg-muted rounded w-4/6"></div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </>
+    );
+  }
+
+  if (!matchData) {
+    return (
+      <>
+        <Helmet>
+          <title>Match Not Found - PulseIndia</title>
+        </Helmet>
+        <div className="min-h-screen bg-background flex flex-col">
+          <Header />
+          <main className="container mx-auto px-4 py-8 flex-1">
+            <div className="max-w-4xl mx-auto text-center">
+              <Card className="py-12">
+                <CardContent>
+                  <Trophy className="h-16 w-16 mx-auto text-muted-foreground/40 mb-4" />
+                  <h2 className="text-2xl font-semibold mb-2">Match Not Found</h2>
+                  <p className="text-muted-foreground mb-6">
+                    The match you're looking for doesn't exist or couldn't be loaded.
+                  </p>
+                  <Link to="/cricket-scores">
+                    <Button>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Scores
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Helmet>
+        <title>{matchData.name} - Live Cricket Score - PulseIndia</title>
+        <meta name="description" content={`Get live updates and detailed information for ${matchData.name}. View scores, player details, and match statistics.`} />
+      </Helmet>
+
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+
+        <main className="container mx-auto px-4 py-8 flex-1">
+          <div className="max-w-4xl mx-auto">
+            {/* Back Button and Refresh */}
+            <div className="flex items-center justify-between mb-6">
+              <Link to="/cricket-scores">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Scores
+                </Button>
+              </Link>
+              
+              <Button
+                onClick={() => fetchMatchDetail(true)}
+                disabled={refreshing}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+
+            {/* Match Header */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-2xl mb-3">{matchData.name}</CardTitle>
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
+                        <span>{matchData.matchType}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>{formatDate(matchData.dateTimeGMT)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{matchData.venue}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={`${getStatusBadge(matchData.status)} text-sm`}>
+                    {matchData.status}
+                  </Badge>
+                </div>
+              </CardHeader>
+            </Card>
+
+            {/* Toss and Match Info */}
+            {(matchData.tossWinner || matchData.matchWinner) && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Match Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {matchData.tossWinner && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Toss Winner:</span>
+                      <span className="font-medium">{matchData.tossWinner} ({matchData.tossChoice})</span>
+                    </div>
+                  )}
+                  {matchData.matchWinner && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Match Winner:</span>
+                      <span className="font-medium text-green-600">{matchData.matchWinner}</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Scores */}
+            {matchData.score && matchData.score.length > 0 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Scores</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {matchData.score.map((scoreData, index) => (
+                      <div key={index} className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                        <div className="font-medium">{scoreData.inning}</div>
+                        <div className="text-xl font-mono font-bold">
+                          {scoreData.r}/{scoreData.w} <span className="text-sm text-muted-foreground">({scoreData.o} ov)</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Teams */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {matchData.teamInfo.map((team, index) => (
+                <Card key={index}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {team.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Short Name:</span>
+                        <span className="font-medium">{team.shortname}</span>
+                      </div>
+                      {matchData.squads && matchData.squads[index] && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-2 text-sm">Squad:</h4>
+                          <div className="space-y-1 max-h-64 overflow-y-auto">
+                            {matchData.squads[index].players.map((player) => (
+                              <div key={player.id} className="flex justify-between items-center py-2 px-3 bg-muted/30 rounded text-sm">
+                                <span>{player.name}</span>
+                                {player.role && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {player.role}
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    </>
+  );
+};
+
+export default MatchDetail;

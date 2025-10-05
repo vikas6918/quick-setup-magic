@@ -104,60 +104,6 @@ export type Database = {
         }
         Relationships: []
       }
-      horoscopes: {
-        Row: {
-          career_advice: string | null
-          created_at: string
-          date: string
-          detailed_horoscope: string | null
-          finance_advice: string | null
-          health_advice: string | null
-          horoscope: string
-          id: string
-          love_advice: string | null
-          lucky_color: string | null
-          lucky_number: string | null
-          lucky_time: string | null
-          mood: string | null
-          sign: string
-          updated_at: string
-        }
-        Insert: {
-          career_advice?: string | null
-          created_at?: string
-          date: string
-          detailed_horoscope?: string | null
-          finance_advice?: string | null
-          health_advice?: string | null
-          horoscope: string
-          id?: string
-          love_advice?: string | null
-          lucky_color?: string | null
-          lucky_number?: string | null
-          lucky_time?: string | null
-          mood?: string | null
-          sign: string
-          updated_at?: string
-        }
-        Update: {
-          career_advice?: string | null
-          created_at?: string
-          date?: string
-          detailed_horoscope?: string | null
-          finance_advice?: string | null
-          health_advice?: string | null
-          horoscope?: string
-          id?: string
-          love_advice?: string | null
-          lucky_color?: string | null
-          lucky_number?: string | null
-          lucky_time?: string | null
-          mood?: string | null
-          sign?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       posts: {
         Row: {
           author: string
