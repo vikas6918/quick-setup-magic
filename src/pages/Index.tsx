@@ -8,14 +8,11 @@ import { Helmet } from "react-helmet";
 // AdSense Component
 const AdSenseAd = ({ slot }: { slot: string }) => {
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9494325056615840";
-    script.async = true;
-    script.crossOrigin = "anonymous";
-    document.head.appendChild(script);
-
-    // Initialize ad after script loads
-    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+    try {
+      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+    } catch (err) {
+      console.error('AdSense error:', err);
+    }
   }, []);
 
   return (
