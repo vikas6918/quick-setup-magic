@@ -16,7 +16,7 @@ const AdSenseAd = ({ slot }: { slot: string }) => {
     document.body.appendChild(script);
 
     // Initialize ad after script loads
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
+    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
   }, []);
 
   return (

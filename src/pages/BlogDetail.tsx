@@ -284,7 +284,7 @@ export const BlogDetail = () => {
                 <div className="prose prose-lg max-w-none mb-8">
                   <p className="text-lg leading-relaxed">{post.description}</p>
                 </div>
-                <CommentsSection postid={post.id}/>
+                <CommentsSection postId={post.id}/>
               </article>
             </main>
 
