@@ -44,31 +44,52 @@ const Astrology = () => {
     try {
       const promises = zodiacSigns.map(async (sign) => {
         try {
-          const response = await fetch(`https://horoscope-app-api.vercel.app/api/v1/get-horoscope/daily?sign=${sign.name}&day=today`);
+          // Using Aztro API - a reliable free horoscope API
+          const response = await fetch(`https://aztro.sameerkumar.website/?sign=${sign.name}&day=today`, {
+            method: 'POST'
+          });
           
           if (!response.ok) {
+            console.log(`API failed for ${sign.name}, status: ${response.status}`);
             throw new Error('API request failed');
           }
           
           const data = await response.json();
+          console.log(`Horoscope data for ${sign.name}:`, data);
           
           return {
             sign: sign.name.charAt(0).toUpperCase() + sign.name.slice(1),
             hindiName: sign.hindi,
-            date: data.data?.date || new Date().toLocaleDateString(),
-            horoscope: data.data?.horoscope_data || "Your stars are aligned today. Stay positive and embrace new opportunities.",
+            date: data.current_date || new Date().toLocaleDateString(),
+            horoscope: data.description || "Your stars are aligned today. Stay positive and embrace new opportunities.",
             color: sign.color,
-            luckyNumber: Math.floor(Math.random() * 99 + 1).toString(),
-            luckyTime: `${Math.floor(Math.random() * 12 + 1)}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
-            mood: ["Happy", "Energetic", "Calm", "Optimistic", "Focused"][Math.floor(Math.random() * 5)]
+            luckyNumber: data.lucky_number || Math.floor(Math.random() * 99 + 1).toString(),
+            luckyTime: data.lucky_time || `${Math.floor(Math.random() * 12 + 1)}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
+            mood: data.mood || ["Happy", "Energetic", "Calm", "Optimistic", "Focused"][Math.floor(Math.random() * 5)]
           };
         } catch (error) {
-          // Fallback data if API fails
+          console.error(`Error fetching horoscope for ${sign.name}:`, error);
+          // Unique fallback data for each sign
+          const fallbackHoroscopes = {
+            aries: "Today brings new opportunities for leadership. Your energy is high and your confidence shines through.",
+            taurus: "Focus on stability and comfort today. Financial matters may require your attention.",
+            gemini: "Communication is your strength today. Connect with others and share your ideas freely.",
+            cancer: "Emotional connections deepen today. Trust your intuition in personal matters.",
+            leo: "Your creative energy is at its peak. Express yourself boldly and pursue your passions.",
+            virgo: "Organization and attention to detail serve you well today. Focus on health and wellness.",
+            libra: "Balance and harmony are within reach. Relationships flourish under your diplomatic approach.",
+            scorpio: "Deep transformation is possible today. Trust your powerful instincts and inner strength.",
+            sagittarius: "Adventure calls to you. Expand your horizons through learning and exploration.",
+            capricorn: "Practical achievements are favored today. Your discipline leads to success.",
+            aquarius: "Innovation and originality set you apart. Embrace your unique perspective.",
+            pisces: "Your intuition and compassion guide you. Creative pursuits bring joy and fulfillment."
+          };
+          
           return {
             sign: sign.name.charAt(0).toUpperCase() + sign.name.slice(1),
             hindiName: sign.hindi,
             date: new Date().toLocaleDateString(),
-            horoscope: "Your stars are aligned today. Stay positive and embrace new opportunities that come your way.",
+            horoscope: fallbackHoroscopes[sign.name as keyof typeof fallbackHoroscopes] || "The stars shine favorably upon you today.",
             color: sign.color,
             luckyNumber: Math.floor(Math.random() * 99 + 1).toString(),
             luckyTime: `${Math.floor(Math.random() * 12 + 1)}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
