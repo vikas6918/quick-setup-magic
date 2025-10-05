@@ -9,11 +9,10 @@ import { Helmet } from "react-helmet";
 const AdSenseAd = ({ slot }: { slot: string }) => {
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
+    script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9494325056615840";
     script.async = true;
     script.crossOrigin = "anonymous";
-    script.setAttribute("data-ad-client", "ca-pub-9494325056615840");
-    document.body.appendChild(script);
+    document.head.appendChild(script);
 
     // Initialize ad after script loads
     ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
